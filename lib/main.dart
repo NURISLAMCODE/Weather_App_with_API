@@ -6,7 +6,11 @@ import 'package:weather_app/consts/colors.dart';
 import 'package:weather_app/consts/images.dart';
 import 'package:weather_app/consts/strings.dart';
 import 'package:weather_app/controllers/main_controller.dart';
-import 'package:weather_app/our_themes.dart';
+import 'package:weather_app/models/current_weather_model.dart';
+import 'package:weather_app/models/hourly_weathet_model.dart';
+
+import 'package:weather_app/services/api_services.dart';
+import 'package:weather_app/utils/our_themes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -62,190 +66,248 @@ class WeatherApp extends StatelessWidget {
                   color: theme.iconTheme.color,
                 ))
           ]),
-      body: Container(
-          padding: const EdgeInsets.all(12),
-          child: SingleChildScrollView(
-            physics: BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                "Dhaka"
-                    .text
-                    .fontFamily("poppins_bold")
-                    .size(32)
-                    .letterSpacing(3)
-                    .color(theme.primaryColor)
-                    .make(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset(
-                      "assets/weather/01d.png",
-                      width: 80,
-                      height: 80,
-                    ),
-                    RichText(
-                        text: TextSpan(children: [
-                      TextSpan(
-                          text: "37$degree",
-                          style: TextStyle(
-                            color: theme.primaryColor,
-                            fontSize: 64,
-                            fontFamily: "poppins",
-                          )),
-                      TextSpan(
-                          text: "Sunny",
-                          style: TextStyle(
-                            color: theme.primaryColor,
-                            letterSpacing: 3,
-                            fontSize: 14,
-                            fontFamily: "poppins",
-                          ))
-                    ]))
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: null,
-                      icon: Icon(Icons.expand_less_rounded,
-                          color: theme.iconTheme.color),
-                      label: "41$degree".text.color(theme.primaryColor).make(),
-                    ),
-                    TextButton.icon(
-                      onPressed: null,
-                      icon: Icon(Icons.expand_less_rounded,
-                          color: theme.iconTheme.color),
-                      label: "26$degree".text.color(theme.primaryColor).make(),
-                    ),
-                  ],
-                ),
-                10.heightBox,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(3, (index) {
-                    var iconList = [clouds, humidity, windspeed];
-                    var values = ["70%", "40%", "3.5 km/h"];
-                    return Column(
-                      children: [
-                        Image.asset(
-                          iconList[index],
-                          width: 60,
-                          height: 60,
-                        )
-                            .box
-                            .padding(const EdgeInsets.all(8))
-                            .gray200
-                            .roundedSM
-                            .make(),
-                        10.heightBox,
-                        values[index].text.gray400.make(),
-                      ],
-                    );
-                  }),
-                ),
-                10.heightBox,
-                const Divider(),
-                10.heightBox,
-                SizedBox(
-                  height: 150,
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    scrollDirection: Axis.horizontal,
-                    shrinkWrap: true,
-                    itemCount: 6,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        margin: const EdgeInsets.only(right: 4),
-                        decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Column(
-                          children: [
-                            "${index + 1} AM".text.gray200.make(),
-                            Image.asset(
-                              "assets/weather/09n.png",
-                              width: 80,
-                            ),
-                            "38$degree".text.white.gray200.make(),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                10.heightBox,
-                const Divider(),
-                10.heightBox,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    "Next 7 Days"
-                        .text
-                        .semiBold
-                        .color(theme.primaryColor)
-                        .size(16)
-                        .make(),
-                    TextButton(onPressed: () {}, child: "View All".text.make()),
-                  ],
-                ),
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: 7,
-                  itemBuilder: (BuildContext context, int index) {
-                    var day = DateFormat("EEEE")
-                        .format(DateTime.now().add(Duration(days: index + 1)));
-                    return Card(
-                      color: theme.cardColor,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 12),
-                        child: Row(
+      body: Obx(() => controller.isloaded.value == true
+          ? Container(
+              padding: const EdgeInsets.all(12),
+              child: FutureBuilder(
+                future: controller.currentWeatherData,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    CurrentWeatherData data = snapshot.data;
+
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          "${data.name}"
+                              .text
+                              .fontFamily("poppins_bold")
+                              .size(32)
+                              .letterSpacing(3)
+                              .color(theme.primaryColor)
+                              .make(),
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                  child: day.text.semiBold
-                                      .color(theme.primaryColor)
-                                      .make()),
-                              Expanded(
-                                child: TextButton.icon(
-                                  onPressed: null,
-                                  icon: Image.asset(
-                                    "assets/weather/50n.png",
-                                    width: 40,
-                                  ),
-                                  label: "26$degree"
-                                      .text
-                                      .color(theme.primaryColor)
-                                      .make(),
-                                ),
+                              Image.asset(
+                                "assets/weather/${data.weather![0].icon}.png",
+                                width: 80,
+                                height: 80,
                               ),
                               RichText(
                                   text: TextSpan(children: [
                                 TextSpan(
-                                    text: "37$degree /",
+                                    text: "${data.main!.temp}$degree",
                                     style: TextStyle(
-                                        color: theme.primaryColor,
-                                        fontFamily: "poppins",
-                                        fontSize: 16)),
+                                      color: theme.primaryColor,
+                                      fontSize: 64,
+                                      fontFamily: "poppins",
+                                    )),
                                 TextSpan(
-                                    text: "26$degree",
+                                    text: " ${data.weather![0].main}",
                                     style: TextStyle(
-                                        color: theme.iconTheme.color,
-                                        fontFamily: "poppins",
-                                        fontSize: 16))
+                                      color: theme.primaryColor,
+                                      letterSpacing: 3,
+                                      fontSize: 14,
+                                      fontFamily: "poppins",
+                                    ))
                               ]))
-                            ]),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed: null,
+                                icon: Icon(Icons.expand_less_rounded,
+                                    color: theme.iconTheme.color),
+                                label: "${data.main!.tempMax}$degree"
+                                    .text
+                                    .color(theme.primaryColor)
+                                    .make(),
+                              ),
+                              TextButton.icon(
+                                onPressed: null,
+                                icon: Icon(Icons.expand_less_rounded,
+                                    color: theme.iconTheme.color),
+                                label: "${data.main!.tempMin}$degree"
+                                    .text
+                                    .color(theme.primaryColor)
+                                    .make(),
+                              ),
+                            ],
+                          ),
+                          10.heightBox,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: List.generate(3, (index) {
+                              var iconList = [clouds, humidity, windspeed];
+                              var values = [
+                                "${data.clouds!.all}",
+                                "${data.main!.humidity}",
+                                "${data.wind!.speed}"
+                              ];
+                              return Column(
+                                children: [
+                                  Image.asset(
+                                    iconList[index],
+                                    width: 60,
+                                    height: 60,
+                                  )
+                                      .box
+                                      .padding(const EdgeInsets.all(8))
+                                      .gray200
+                                      .roundedSM
+                                      .make(),
+                                  10.heightBox,
+                                  values[index].text.gray400.make(),
+                                ],
+                              );
+                            }),
+                          ),
+                          10.heightBox,
+                          const Divider(),
+                          10.heightBox,
+                          FutureBuilder(
+                            future: controller.hourlyWeatherData,
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot) {
+                              if (snapshot.hasData) {
+                                HourlyWeatherData hourlyData = snapshot.data;
+                                return SizedBox(
+                                  height: 150,
+                                  child: ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    scrollDirection: Axis.horizontal,
+                                    shrinkWrap: true,
+                                    itemCount: hourlyData.list!.length > 6
+                                        ? 6
+                                        : hourlyData.list!.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      var time = DateFormat.jm().format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              hourlyData.list![index].dt!
+                                                      .toInt() *
+                                                  1000));
+                                      return Container(
+                                        padding: const EdgeInsets.all(8),
+                                        margin: const EdgeInsets.only(right: 4),
+                                        decoration: BoxDecoration(
+                                            color: cardColor,
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                        child: Column(
+                                          children: [
+                                            time.text.gray200.make(),
+                                            Image.asset(
+                                              "assets/weather/${hourlyData.list![index].weather![0].icon}.png",
+                                              width: 80,
+                                            ),
+                                            "${hourlyData.list![index].main!.temp}$degree"
+                                                .text
+                                                .white
+                                                .gray200
+                                                .make(),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              } else {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                            },
+                          ),
+                          10.heightBox,
+                          const Divider(),
+                          10.heightBox,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              "Next 7 Days"
+                                  .text
+                                  .semiBold
+                                  .color(theme.primaryColor)
+                                  .size(16)
+                                  .make(),
+                              TextButton(
+                                  onPressed: () {},
+                                  child: "View All".text.make()),
+                            ],
+                          ),
+                          ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: 7,
+                            itemBuilder: (BuildContext context, int index) {
+                              var day = DateFormat("EEEE").format(DateTime.now()
+                                  .add(Duration(days: index + 1)));
+                              return Card(
+                                color: theme.cardColor,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 12),
+                                  child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                            child: day.text.semiBold
+                                                .color(theme.primaryColor)
+                                                .make()),
+                                        Expanded(
+                                          child: TextButton.icon(
+                                            onPressed: null,
+                                            icon: Image.asset(
+                                              "assets/weather/50n.png",
+                                              width: 40,
+                                            ),
+                                            label: "26$degree"
+                                                .text
+                                                .color(theme.primaryColor)
+                                                .make(),
+                                          ),
+                                        ),
+                                        RichText(
+                                            text: TextSpan(children: [
+                                          TextSpan(
+                                              text: "37$degree /",
+                                              style: TextStyle(
+                                                  color: theme.primaryColor,
+                                                  fontFamily: "poppins",
+                                                  fontSize: 16)),
+                                          TextSpan(
+                                              text: "26$degree",
+                                              style: TextStyle(
+                                                  color: theme.iconTheme.color,
+                                                  fontFamily: "poppins",
+                                                  fontSize: 16))
+                                        ]))
+                                      ]),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     );
-                  },
-                ),
-              ],
-            ),
-          )),
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  //  return;
+                },
+              ),
+            )
+          : const Center(
+              child: CircularProgressIndicator(),
+            )),
     );
   }
 }
